@@ -82,11 +82,13 @@ public class GitStatusCommand extends Command {
             Status status = git.status().call();
             boolean isEmptyCheck = status.getAdded().isEmpty() && status.getUntracked().isEmpty();
             System.out.println("----------------------------------------------------------------------------");
-            SimpleLogger.println(">> Check [ {} ]", dir.getName());
+            SimpleLogger.print(">> Check repository [ {} ]", dir.getName());
             if (isEmptyCheck) {
-                SimpleLogger.println("> not exist stage files", dir.getName());
+                SimpleLogger.println("> empty stage files", dir.getName());
             } else {
-                SimpleLogger.println("> remain state & un tracked file");
+                SimpleLogger.println("> remain state & un tracked file. added : {} | untracked : {}"
+                    , status.getAdded().size(), status.getUntracked().size());
+
                 if (gitStatusOptions.isDisplayAll()) {
                     SimpleLogger.println("Added : {}\nUntracked : {}", dir.getName(), status.getAdded(), status.getUntracked());
                 }

@@ -43,11 +43,9 @@ $ java -jar target\cli-util.jar status -p C:\git\zaccoding -d 1 -s false
 
 ```
 ----------------------------------------------------------------------------
->> Check [ algorithm ]
-> not exist stage files
+>> Check repository [ blockchain ]> remain state & un tracked file. added : 1 | un tracked : 2
 ----------------------------------------------------------------------------
->> Check [ analyze-blockchain ]
-> remain state & un tracked file
+>> Check repository [ blockchain-collector ]> empty stage files
 ```  
 
 

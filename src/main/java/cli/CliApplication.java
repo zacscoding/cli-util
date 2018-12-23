@@ -20,6 +20,15 @@ public class CliApplication {
     }
 
     public static void main(String[] args) {
+        args = new String[]{
+            "status"
+            , "-p"
+            , "C:\\git\\zaccoding"
+            , "-d"
+            , "1"
+            , "-s"
+            , "false"
+        };
         if (args == null || args.length == 0) {
             printHelpMessage();
             return;
