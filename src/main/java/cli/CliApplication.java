@@ -1,5 +1,6 @@
 package cli;
 
+import cli.git.diff.GitDiffCommand;
 import cli.git.status.GitStatusCommand;
 import java.util.Arrays;
 import java.util.List;
@@ -16,19 +17,23 @@ public class CliApplication {
     private static List<Command> COMMANDS;
 
     static {
-        COMMANDS = Arrays.asList(new GitStatusCommand());
+        COMMANDS = Arrays.asList(
+            new GitStatusCommand(),
+            new GitDiffCommand()
+        );
     }
 
     public static void main(String[] args) {
-        args = new String[]{
-            "status"
+        // TEMP FOR DEV
+        /*args = new String[]{
+            "git-status"
             , "-p"
             , "C:\\git\\zaccoding"
             , "-d"
             , "1"
-            , "-s"
-            , "false"
-        };
+        };*/
+        // -- TEMP FOR DEV
+
         if (args == null || args.length == 0) {
             printHelpMessage();
             return;
@@ -59,6 +64,6 @@ public class CliApplication {
 
             sb.append(COMMANDS.get(i).getType());
         }
-        System.out.println("\nAvailable commands : [ " + sb.toString() + " ]\n");
+        System.out.println("\nCommands : [ " + sb.toString() + " ]\n");
     }
 }

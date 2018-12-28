@@ -6,6 +6,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -24,14 +25,18 @@ public abstract class Command {
 
     public abstract Options getOptions();
 
-    protected CommandLine generateCommandLine(final Options options, final String[] commandLineArguments) throws ParseException {
+    protected CommandLine generateCommandLine(final Options options, final String[] commandLineArguments)
+        throws ParseException {
         final CommandLineParser cmdLineParser = new DefaultParser();
         CommandLine commandLine = null;
 
         try {
             commandLine = cmdLineParser.parse(options, commandLineArguments);
         } catch (ParseException parseException) {
-            SimpleLogger.error("ERROR: Unable to parse command-line arguments " + Arrays.toString(commandLineArguments) + " : " + parseException.getMessage());
+            SimpleLogger.error("ERROR: Unable to parse command-line arguments "
+                + Arrays.toString(commandLineArguments) + " : " + parseException.getMessage()
+            );
+
             printHelp();
             throw parseException;
         }
@@ -47,5 +52,24 @@ public abstract class Command {
         final String usageFooter = "\n";
         System.out.println();
         formatter.printHelp(syntax, usageHeader, options, usageFooter);
+        System.out.println("\n");
+    }
+
+    protected boolean isDisplayHelpMessage(CommandLine commandLines) {
+        if (commandLines == null) {
+            return true;
+        }
+
+        Option[] options = commandLines.getOptions();
+
+        if (options == null || options.length == 0) {
+            return true;
+        }
+
+        if (options.length == 1 && options[0].getOpt().equalsIgnoreCase("h")) {
+            return true;
+        }
+
+        return false;
     }
 }

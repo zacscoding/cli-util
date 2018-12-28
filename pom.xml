@@ -73,6 +73,18 @@
             <version>4.11.0.201803080745-r</version>
         </dependency>
 
+        <!-- slf4j -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+
         <!-- test -->
         <dependency>
             <groupId>junit</groupId>

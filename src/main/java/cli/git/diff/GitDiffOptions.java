@@ -1,22 +1,21 @@
-package cli.git.status;
+package cli.git.diff;
 
 /**
  * @author zacconding
- * @Date 2018-11-23
+ * @Date 2018-12-29
  * @GitHub : https://github.com/zacscoding
  */
-public class GitStatusOptions {
+public class GitDiffOptions {
 
     private int depth;
     private String parentDir;
-    private boolean displayAll;
 
     public int getDepth() {
         return depth;
     }
 
     public void setDepth(int depth) {
-        this.depth = depth < 0 ? Integer.MAX_VALUE : depth;
+        this.depth = depth < 0 ? Integer.MAX_VALUE : 0;
     }
 
     public String getParentDir() {
@@ -25,13 +24,5 @@ public class GitStatusOptions {
 
     public void setParentDir(String parentDir) {
         this.parentDir = parentDir;
-    }
-
-    public boolean isDisplayAll() {
-        return displayAll;
-    }
-
-    public void setDisplayAll(boolean displayAll) {
-        this.displayAll = displayAll;
     }
 }

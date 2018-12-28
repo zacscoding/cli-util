@@ -1,11 +1,13 @@
 package cli.git.status;
 
 import cli.Command;
+import cli.git.GitHelper;
 import cli.util.SimpleLogger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -34,23 +36,27 @@ public class GitStatusCommand extends Command {
     public void process(String[] args) {
         try {
             CommandLine commandLine = generateCommandLine(argOptions, args);
-            Option[] options = commandLine.getOptions();
 
-            if (options.length == 0 || options.length == 1 && options[0].getOpt().equalsIgnoreCase("h")) {
+            if (isDisplayHelpMessage(commandLine)) {
                 printHelp();
                 return;
             }
 
-            gitStatusOptions = parseGitStatusOptions(commandLine);
+            parseGitStatusOptions(commandLine);
 
             File rootDir = new File(gitStatusOptions.getParentDir());
+
             if (!rootDir.exists()) {
                 throw new FileNotFoundException();
             }
+
+            Predicate<File> consumePredicate = file -> file != null && file.isDirectory();
             Consumer<File> consumer = file -> checkGitStatus(file);
-            for (File file : rootDir.listFiles()) {
-                checkDirectoryWithDepth(file, 1, consumer);
-            }
+            Predicate<File> terminatePredicate = file -> GitHelper.isGitDirectory(file);
+
+            GitHelper.exploreFilesWithDepth(rootDir, consumePredicate, consumer, terminatePredicate,
+                gitStatusOptions.getDepth(), 0);
+
         } catch (ParseException e) {
             // ignore
         } catch (FileNotFoundException e) {
@@ -62,7 +68,7 @@ public class GitStatusCommand extends Command {
 
     @Override
     public String getType() {
-        return "status";
+        return "git-status";
     }
 
     @Override
@@ -74,23 +80,22 @@ public class GitStatusCommand extends Command {
      * Check added or untracked files if git repository
      */
     private void checkGitStatus(File dir) {
-        if (dir == null || !dir.isDirectory()) {
-            return;
-        }
-
         try (Git git = Git.open(dir)) {
             Status status = git.status().call();
             boolean isEmptyCheck = status.getAdded().isEmpty() && status.getUntracked().isEmpty();
             System.out.println("----------------------------------------------------------------------------");
             SimpleLogger.print(">> Check repository [ {} ]", dir.getName());
             if (isEmptyCheck) {
-                SimpleLogger.println("> empty stage files", dir.getName());
+                SimpleLogger.println(" > empty stage files", dir.getName());
             } else {
-                SimpleLogger.println("> remain state & un tracked file. added : {} | untracked : {}"
-                    , status.getAdded().size(), status.getUntracked().size());
+                SimpleLogger.println(" > remain state & un tracked file. added : {} | untracked : {}"
+                    , status.getAdded().size(), status.getUntracked().size()
+                );
 
                 if (gitStatusOptions.isDisplayAll()) {
-                    SimpleLogger.println("Added : {}\nUntracked : {}", dir.getName(), status.getAdded(), status.getUntracked());
+                    SimpleLogger.println("Added : {}\nUntracked : {}"
+                        , dir.getName(), status.getAdded(), status.getUntracked()
+                    );
                 }
             }
         } catch (RepositoryNotFoundException e) {
@@ -102,25 +107,11 @@ public class GitStatusCommand extends Command {
     }
 
     /**
-     * Check directory with depth.
-     * Consumer will consume this file if current depth is less than maximum depth and is directory
-     */
-    private void checkDirectoryWithDepth(File file, int currentDepth, Consumer<File> consumer) {
-        if (!file.isDirectory() || currentDepth > gitStatusOptions.getDepth()) {
-            return;
-        }
-
-        consumer.accept(file);
-        for (File child : file.listFiles()) {
-            checkDirectoryWithDepth(child, currentDepth + 1, consumer);
-        }
-    }
-
-    /**
      * Parse GitStatusOptions
      */
-    private GitStatusOptions parseGitStatusOptions(CommandLine commandLine) throws Exception {
-        GitStatusOptions gitStatusOptions = new GitStatusOptions();
+    private void parseGitStatusOptions(CommandLine commandLine) throws Exception {
+        gitStatusOptions = new GitStatusOptions();
+
         for (Option option : commandLine.getOptions()) {
             switch (option.getOpt()) {
                 case "p":
@@ -129,37 +120,34 @@ public class GitStatusCommand extends Command {
                 case "d":
                     gitStatusOptions.setDepth(Integer.parseInt(option.getValue()));
                     break;
-                case "s" :
+                case "s":
                     gitStatusOptions.setDisplayAll(Boolean.parseBoolean(option.getValue()));
                     break;
                 default:
                     SimpleLogger.error("Invalid param " + option.getOpt());
             }
         }
-
-        if (gitStatusOptions.getDepth() == 0) {
-            gitStatusOptions.setDepth(1);
-        } else if (gitStatusOptions.getDepth() < 0) {
-            gitStatusOptions.setDepth(Integer.MAX_VALUE);
-        }
-
-        return gitStatusOptions;
     }
 
     /**
      * Generate cli options
      */
     private Options generateOptions() {
-        final Option helpOption = Option.builder("h").required(false).hasArg(false).longOpt("help").desc("Display help messages").build();
-        final Option parentPathOption = Option.builder("p").required(false).hasArg(true).longOpt("path").desc("trace from this path").build();
-        final Option showFilesOption = Option.builder("s").required(false).hasArg(true).longOpt("show")
-                                             .desc("show added & untracked files. default false").build();
-        final Option depthOption = Option.builder("d").required(false).hasArg(true).longOpt("depth").desc("Will check with depth. default value is 1")
-                                         .build();
+        final Option helpOption = Option.builder("h").required(false).hasArg(false)
+            .longOpt("help").desc("display help messages").build();
+
+        final Option parentPathOption = Option.builder("p").required(false).hasArg(true)
+            .longOpt("path").desc("trace from this path").build();
+
+        final Option showFilesOption = Option.builder("s").required(false).hasArg(true)
+            .longOpt("show").desc("show added & untracked files. default false").build();
+
+        final Option depthOption = Option.builder("d").required(false).hasArg(true)
+            .longOpt("depth").desc("will check with depth. default value is 1").build();
 
         return new Options().addOption(helpOption)
-                            .addOption(parentPathOption)
-                            .addOption(showFilesOption)
-                            .addOption(depthOption);
+            .addOption(parentPathOption)
+            .addOption(showFilesOption)
+            .addOption(depthOption);
     }
 }
