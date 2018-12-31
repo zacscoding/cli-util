@@ -15,7 +15,7 @@ public class GitDiffOptions {
     }
 
     public void setDepth(int depth) {
-        this.depth = depth < 0 ? Integer.MAX_VALUE : 0;
+        this.depth = depth < 0 ? Integer.MAX_VALUE : depth;
     }
 
     public String getParentDir() {
