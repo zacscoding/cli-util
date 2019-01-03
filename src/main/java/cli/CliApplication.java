@@ -25,13 +25,13 @@ public class CliApplication {
 
     public static void main(String[] args) {
         // TEMP FOR DEV
-        /*args = new String[]{
-            "git-status"
-            , "-p"
-            , "C:\\git\\zaccoding"
-            , "-d"
-            , "1"
-        };*/
+//        args = new String[]{
+//            "git-diff"
+//            , "-p"
+//            , "C:\\git\\zaccoding"
+//            , "-d"
+//            , "1"
+//        };
         // -- TEMP FOR DEV
 
         if (args == null || args.length == 0) {

@@ -56,20 +56,10 @@ public abstract class Command {
     }
 
     protected boolean isDisplayHelpMessage(CommandLine commandLines) {
-        if (commandLines == null) {
+        if(commandLines == null) {
             return true;
         }
 
-        Option[] options = commandLines.getOptions();
-
-        if (options == null || options.length == 0) {
-            return true;
-        }
-
-        if (options.length == 1 && options[0].getOpt().equalsIgnoreCase("h")) {
-            return true;
-        }
-
-        return false;
+        return commandLines.hasOption("help");
     }
 }
