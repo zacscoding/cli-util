@@ -1,5 +1,11 @@
 package cli.git.status;
 
+import static org.fusesource.jansi.Ansi.Color.CYAN;
+import static org.fusesource.jansi.Ansi.Color.DEFAULT;
+import static org.fusesource.jansi.Ansi.Color.GREEN;
+import static org.fusesource.jansi.Ansi.Color.YELLOW;
+import static org.fusesource.jansi.Ansi.ansi;
+
 import cli.Command;
 import cli.git.GitHelper;
 import cli.util.SimpleLogger;
@@ -15,6 +21,8 @@ import org.apache.commons.cli.ParseException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
+import org.fusesource.jansi.Ansi.Color;
+import org.fusesource.jansi.AnsiConsole;
 
 /**
  * Check git status from parent dir
@@ -84,12 +92,29 @@ public class GitStatusCommand extends Command {
             Status status = git.status().call();
             boolean isEmptyCheck = status.getAdded().isEmpty() && status.getUntracked().isEmpty();
             System.out.println("----------------------------------------------------------------------------");
-            SimpleLogger.print(">> Check repository [ {} ]", dir.getName());
+
+            AnsiConsole.systemInstall();
+            System.out.print(
+                ansi().a(">> Check status. repository [ ")
+                    .fg(GREEN)
+                    .a(dir.getName())
+                    .fg(DEFAULT)
+                    .a(" ] ")
+                    .reset()
+            );
+
             if (isEmptyCheck) {
-                SimpleLogger.println(" > empty stage files", dir.getName());
+                System.out.println(
+                    ansi().a("> ").fg(CYAN).a("empty stage files").reset()
+                );
             } else {
-                SimpleLogger.println(" > remain state & un tracked file. added : {} | untracked : {}"
-                    , status.getAdded().size(), status.getUntracked().size()
+                System.out.println(
+                    ansi().a("> ")
+                    .fg(YELLOW)
+                    .a("remain state & untracked file.")
+                    .fg(DEFAULT)
+                    .a("added : " + status.getAdded().size())
+                    .a(" | untracked : " + status.getUntracked().size())
                 );
 
                 if (gitStatusOptions.isDisplayAll()) {
@@ -102,7 +127,8 @@ public class GitStatusCommand extends Command {
             // ignore not git dir
             return;
         } catch (Exception e) {
-            SimpleLogger.error("Failed to check git status " + dir.getAbsolutePath(), e);
+            SimpleLogger.println("[ERROR] Failed to check git status. {} | {}"
+                , dir.getAbsolutePath(), e.getMessage());
         }
     }
 

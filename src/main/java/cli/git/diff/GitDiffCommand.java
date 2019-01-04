@@ -1,7 +1,14 @@
 package cli.git.diff;
 
+import static org.fusesource.jansi.Ansi.Color.DEFAULT;
+import static org.fusesource.jansi.Ansi.Color.GREEN;
+import static org.fusesource.jansi.Ansi.Color.RED;
+import static org.fusesource.jansi.Ansi.Color.WHITE;
+import static org.fusesource.jansi.Ansi.ansi;
+
 import cli.Command;
 import cli.git.GitHelper;
+import cli.util.ConsoleColors;
 import cli.util.SimpleLogger;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +30,9 @@ import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
+import org.fusesource.jansi.Ansi.Color;
+import org.fusesource.jansi.AnsiConsole;
+import sun.java2d.pipe.SpanIterator;
 
 /**
  * Compare sha local repository with remote repositories
@@ -90,7 +100,16 @@ public class GitDiffCommand extends Command {
     private void compareLocalWithRemotes(File dir) {
         try (Git git = Git.open(dir)) {
             System.out.println("----------------------------------------------------------------------------");
-            SimpleLogger.print(">> Check repository [ {} ]", dir.getName());
+
+            AnsiConsole.systemInstall();
+            System.out.print(
+                ansi().a(">> Check diff. repository [ ")
+                    .fg(GREEN)
+                    .a(dir.getName())
+                    .fg(DEFAULT)
+                    .a(" ] ")
+                    .reset()
+            );
 
             // local branchs map
             Map<String, String> localRefsMap = git.branchList().call().stream().collect(
@@ -100,7 +119,8 @@ public class GitDiffCommand extends Command {
             // remote configs
             List<RemoteConfig> remoteConfigs = git.remoteList().call();
             if (remoteConfigs.isEmpty()) {
-                System.out.println("> empty remotes");
+                System.out.println(ansi().fg(Color.YELLOW).a("> empty remotes").reset());
+                // AnsiConsole.systemUninstall();
                 return;
             }
 
@@ -130,7 +150,11 @@ public class GitDiffCommand extends Command {
                                 continue;
                             }
 
-                            isSynchronized = false;
+                            if (isSynchronized) {
+                                System.out.println(ansi().a(" > ").fg(RED).a("not synchronized").reset());
+                                isSynchronized = false;
+                            }
+
                             SimpleLogger.println("\n>>> diff ref {}. local : {} | remote {}-{} : {}"
                                 , ref.getName(), sha, remoteConfig.getName(), url.toString(), ref.getObjectId().name());
                         }
@@ -150,13 +174,14 @@ public class GitDiffCommand extends Command {
             }
 
             if (isSynchronized) {
-                System.out.println(" > synchronized");
+                System.out.println(ansi().a(" > ").fg(Color.CYAN).a("synchronized").reset());
             }
         } catch (RepositoryNotFoundException e) {
             // ignore not git dir
             return;
         } catch (Exception e) {
-            SimpleLogger.error("Failed to check git diff " + dir.getAbsolutePath(), e);
+            SimpleLogger.println("[ERROR] Failed to check git diffs. {} | {}"
+                , dir.getAbsolutePath(), e.getMessage());
         }
     }
 
